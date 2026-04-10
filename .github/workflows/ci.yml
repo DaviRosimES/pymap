@@ -1,0 +1,205 @@
+name: CI/CD – pymap
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# ─────────────────────────────────────────────
+# Variáveis de ambiente globais
+# ─────────────────────────────────────────────
+env:
+  PYTHON_VERSION: "3.11"
+  NOTIFY_EMAIL: ${{ vars.NOTIFY_EMAIL }}   # configure em Settings → Variables
+
+jobs:
+
+  # ═══════════════════════════════════════════
+  # JOB 1 – Testes + cobertura
+  # ═══════════════════════════════════════════
+  test:
+    name: 🧪 Testes Unitários
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout do repositório
+        uses: actions/checkout@v4
+
+      - name: Configurar Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Instalar Poetry
+        run: |
+          pip install poetry
+          poetry config virtualenvs.in-project true
+
+      - name: Instalar dependências via Poetry
+        run: poetry install
+
+      - name: Executar testes e gerar relatórios
+        run: |
+          mkdir -p reports
+          poetry run pytest
+
+      - name: Upload do relatório de testes (JUnit)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: junit-report
+          path: reports/junit.xml
+
+      - name: Upload do relatório de cobertura (HTML)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-html
+          path: reports/coverage/
+
+      - name: Upload do relatório de cobertura (XML)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-xml
+          path: reports/coverage.xml
+
+  # ═══════════════════════════════════════════
+  # JOB 2 – Build / empacotamento
+  # Roda em PARALELO com o job de testes
+  # ═══════════════════════════════════════════
+  build:
+    name: 📦 Build do Pacote
+    runs-on: ubuntu-latest
+    # Paralelo com 'test' — sem needs
+
+    steps:
+      - name: Checkout do repositório
+        uses: actions/checkout@v4
+
+      - name: Configurar Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Instalar Poetry
+        run: pip install poetry
+
+      - name: Gerar pacote distribuível (wheel + sdist)
+        run: poetry build
+
+      - name: Upload dos artefatos de build
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-packages
+          path: dist/
+
+  # ═══════════════════════════════════════════
+  # JOB 3 – Deploy → GitHub Release
+  # Só roda após AMBOS test e build passarem
+  # ═══════════════════════════════════════════
+  deploy:
+    name: 🚀 Deploy – GitHub Release
+    runs-on: ubuntu-latest
+    needs: [test, build]
+    # Apenas em push na main (não em PRs)
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    permissions:
+      contents: write   # necessário para criar releases
+
+    steps:
+      - name: Checkout do repositório
+        uses: actions/checkout@v4
+
+      - name: Baixar artefatos de build
+        uses: actions/download-artifact@v4
+        with:
+          name: dist-packages
+          path: dist/
+
+      - name: Baixar relatório de cobertura (XML)
+        uses: actions/download-artifact@v4
+        with:
+          name: coverage-xml
+          path: reports/
+
+      - name: Baixar relatório JUnit
+        uses: actions/download-artifact@v4
+        with:
+          name: junit-report
+          path: reports/
+
+      - name: Extrair versão do pyproject.toml
+        id: version
+        run: |
+          VERSION=$(grep '^version' pyproject.toml | head -1 | sed 's/version = "\(.*\)"/\1/')
+          echo "tag=v${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+
+      - name: Criar GitHub Release com artefatos
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: "pymap ${{ steps.version.outputs.tag }}"
+          body: |
+            ## 🗺️ pymap ${{ steps.version.outputs.tag }}
+
+            Release gerado automaticamente pelo pipeline CI/CD.
+
+            ### 📦 Artefatos
+            - `*.whl` – wheel instalável via pip
+            - `*.tar.gz` – source distribution
+
+            ### ✅ Testes & Cobertura
+            Todos os testes passaram antes deste deploy.
+            Relatórios de cobertura e JUnit estão disponíveis como artefatos do workflow.
+
+            > Commit: `${{ github.sha }}`
+          files: |
+            dist/*.whl
+            dist/*.tar.gz
+            reports/coverage.xml
+            reports/junit.xml
+          draft: false
+          prerelease: false
+
+  # ═══════════════════════════════════════════
+  # JOB 4 – Notificação por e-mail
+  # Roda sempre ao final (sucesso ou falha)
+  # ═══════════════════════════════════════════
+  notify:
+    name: 📧 Notificação
+    runs-on: ubuntu-latest
+    needs: [test, build, deploy]
+    if: always()
+
+    steps:
+      - name: Checkout do repositório
+        uses: actions/checkout@v4
+
+      - name: Configurar Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Instalar dependências do script de notificação
+        run: pip install requests
+
+      - name: Enviar notificação por e-mail
+        env:
+          # Credenciais configuradas como Secrets no GitHub (Settings → Secrets)
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASS: ${{ secrets.SMTP_PASS }}
+          NOTIFY_EMAIL: ${{ vars.NOTIFY_EMAIL }}
+          # Contexto do pipeline
+          TEST_RESULT: ${{ needs.test.result }}
+          BUILD_RESULT: ${{ needs.build.result }}
+          DEPLOY_RESULT: ${{ needs.deploy.result }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          COMMIT_SHA: ${{ github.sha }}
+          BRANCH: ${{ github.ref_name }}
+        run: python scripts/notify.py
