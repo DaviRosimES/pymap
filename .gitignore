@@ -1,0 +1,59 @@
+# ── Python ──────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+eggs/
+parts/
+var/
+sdist/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.manifest
+*.spec
+MANIFEST
+
+# ── Virtualenvs ──────────────────────────────
+.venv/
+venv/
+env/
+ENV/
+.env/
+.pyenv/
+
+# ── Poetry ───────────────────────────────────
+poetry.lock     # descomente para fixar versões no CI
+# Mantenha o poetry.lock versionado em projetos de aplicação;
+# para bibliotecas pode-se omitir.
+
+# ── Pytest / cobertura ────────────────────────
+.pytest_cache/
+reports/
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+
+# ── pyenv ────────────────────────────────────
+.python-version
+
+# ── VS Code ──────────────────────────────────
+.vscode/
+*.code-workspace
+
+# ── IDEs / SO ────────────────────────────────
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# ── Misc ─────────────────────────────────────
+*.log
+*.tmp
