@@ -5,6 +5,12 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch to run the pipeline on'
+        required: false
+        default: 'main'
 
 # ─────────────────────────────────────────────
 # Variáveis de ambiente globais
