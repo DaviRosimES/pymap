@@ -3,7 +3,6 @@
 ![CI/CD](https://github.com/DaviRosim/pymap/actions/workflows/ci.yml/badge.svg)
 ![Coverage](https://img.shields.io/badge/coverage-≥80%25-brightgreen)
 ![Python](https://img.shields.io/badge/python-3.11%2B-blue)
-![License](https://img.shields.io/badge/license-MIT-lightgrey)
 
 > HashMap puro em Python — implementação do zero com encadeamento separado e rehashing automático.
 
