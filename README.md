@@ -1,6 +1,5 @@
 # 🗺️ pymap
-
-![CI/CD](https://github.com/DaviRosim/pymap/actions/workflows/ci.yml/badge.svg)
+[![CI/CD – pymap](https://github.com/DaviRosimES/pymap/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/DaviRosimES/pymap/actions/workflows/ci.yml)
 ![Coverage](https://img.shields.io/badge/coverage-≥80%25-brightgreen)
 ![Python](https://img.shields.io/badge/python-3.11%2B-blue)
 
@@ -27,7 +26,7 @@ Projeto desenvolvido como atividade prática da disciplina **C14 – Engenharia 
 **Detalhes internos:**
 - Resolução de colisões: **encadeamento separado** (listas por bucket)
 - Capacidade padrão: **16 buckets**
-- Threshold de rehashing: **0.75** (dobra a capacidade automaticamente)
+- Threshold de rehashing: **0.75**
 
 ---
 
