@@ -27,7 +27,7 @@ Projeto desenvolvido como atividade prática da disciplina **C14 – Engenharia 
 **Detalhes internos:**
 - Resolução de colisões: **encadeamento separado** (listas por bucket)
 - Capacidade padrão: **16 buckets**
-- Threshold de rehashing: **0.75** (dobra a capacidade automaticamente)
+- Threshold de rehashing: **0.75**
 
 ---
 
