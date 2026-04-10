@@ -1,0 +1,35 @@
+[tool.poetry]
+name = "pymap"
+version = "0.1.0"
+description = "Pure-Python HashMap implementation with separate chaining and automatic rehashing."
+authors = ["Davi Rosim <davi.rosim@ges.inatel.br>"]
+readme = "README.md"
+packages = [{ include = "pymap", from = "src" }]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+
+[tool.poetry.dev-dependencies]
+pytest = "^8.2"
+pytest-cov = "^5.0"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = [
+    "--tb=short",
+    "--cov=pymap",
+    "--cov-report=term-missing",
+    "--cov-report=html:reports/coverage",
+    "--cov-report=xml:reports/coverage.xml",
+    "--junitxml=reports/junit.xml",
+]
+
+[tool.coverage.run]
+source = ["src/pymap"]
+
+[tool.coverage.report]
+fail_under = 80
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
