@@ -66,11 +66,11 @@ pymap/
 
 ```bash
 # 1. Clone o repositório
-git clone https://github.com/SEU_USER/pymap.git
+git clone https://github.com/DaviRosimES/pymap.git
 cd pymap
 
 # 2. Defina a versão do Python com pyenv
-pyenv local 3.11.9   # ou outra 3.11+
+pyenv local 3.11
 
 # 3. Instale as dependências com Poetry
 poetry install
