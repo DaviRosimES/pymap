@@ -6,18 +6,13 @@ on:
   pull_request:
     branches: [main]
   workflow_dispatch:
-    inputs:
-      branch:
-        description: 'Branch to run the pipeline on'
-        required: false
-        default: 'main'
 
 # ─────────────────────────────────────────────
 # Variáveis de ambiente globais
 # ─────────────────────────────────────────────
 env:
   PYTHON_VERSION: "3.11"
-  NOTIFY_EMAIL: ${{ vars.NOTIFY_EMAIL }}   # configure em Settings → Variables
+  NOTIFY_EMAIL: ${{ vars.NOTIFY_EMAIL }}
 
 jobs:
 
@@ -109,11 +104,10 @@ jobs:
     name: 🚀 Deploy – GitHub Release
     runs-on: ubuntu-latest
     needs: [test, build]
-    # Apenas em push na main (não em PRs)
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
 
     permissions:
-      contents: write   # necessário para criar releases
+      contents: write 
 
     steps:
       - name: Checkout do repositório
